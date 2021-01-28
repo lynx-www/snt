@@ -44,7 +44,7 @@
           }
         }
   }
-
+/*
   public function select($table, $sort=NULL){
     $array = array();
     $sql = "SELECT * FROM {$table}";
@@ -58,6 +58,10 @@
     }
     return $array;
   }
+  */
+
+
+  //Используется
   public  function select_sql($sql){
     //echo $sql;
     $array = array();
@@ -67,6 +71,8 @@
   }
   return $array;
  }
+
+ /*
   public function select_filtr($table, $where=NULL){
     $array = array();
     $sql = "SELECT * FROM {$table} WHERE famely LIKE '".$where."%'";
@@ -76,6 +82,8 @@
     }
     return $array;
   }
+  */
+
 
   public function one($param, $table, $where){
     $array = array();
@@ -97,15 +105,13 @@
       return isset($value) ? $value[0] : "0";
     
 }
-  
+  //Используется
  public function sum_dolg($opl, $opl1){ //вернуть сумму долга
   return $opl - $opl1;
  }
-  public function add($param){  //Добавление записей в таблицу
+ 
 
-  }
-
-
+/*
   public function interval($srok, $date)
   {
     echo "Срок оплаты: ".$srok." Дата оплаты: ".$date."<br>";
@@ -131,10 +137,9 @@
 
           
     }
-
-   
-
 }
+*/
+/*
 public function return_begin($date=NULL){
   if(!isset($date)){$date = date("Y-m-d");}
   $sql = "SELECT * FROM stavka";
@@ -148,7 +153,8 @@ public function return_begin($date=NULL){
       }
    }
 }
-
+*/
+/*
 public function count_day($id_srok, $srok, $id_date){
   $sql = "SELECT * FROM stavka";
   $result = $this->db->query($sql);
@@ -165,6 +171,7 @@ public function count_day($id_srok, $srok, $id_date){
     
   }
 }
+*/
 /* НЕ ПРАВИЛЬНО РАБОТАЕТ
 public function my_diff($date1, $date2){
   if(!isset($date2)){ $date2 = date('Y-m-d');}
@@ -175,7 +182,7 @@ $d = $i->format('%d');
 return $d;
 }
 */
-//Разница между датами
+//Разница между датами используется
 function col_days($srok, $date_2=null) {
 
 if(is_null($date_2) || $date_2 == null){
@@ -194,59 +201,8 @@ if($srok > $date_2){
   }
 }
 
-//Считаем долг по ставке
-public function test_end($srok, $date_2){
-  if(is_null($date_2) || $date_2 == null){
-    $date_2 = date('Y-m-d');
-  }
-  if($srok > $date_2){
-  
-    return '+'; 
-  }
-    else{
-//Обработка
-$sql = "SELECT * FROM stavka";
-$result = $this->db->query($sql);
-while ($row = $result->fetch_array(MYSQLI_BOTH)){
 
-  if(($srok >= $row['begin']) && ($srok <= $row['end'])){   //Ищем дату платежа
-    $begin = $row['end']; 
-    $st1 = $row['stavka'];
-    $id1 = $row['id'];
-    $day1 = $row['day'];
-    }
-    if(($date_2 >= $row['begin']) && ($date_2 <= $row['end'])){   //Ищем дату платежа
-      $end = $row['begin']; 
-      $st2 = $row['stavka'];
-      $id2 = $row['id'];
-      $day2 = $row['day'];
-      }
-  }
- 
-  //Обрабатываем от и до
 
-  $b = $this->col_days($srok, $begin);
-  $b1 = $this->col_days($end, $date_2);
- var_dump($b);
-  for($i=$st1; $i <= $st1; $i++){
-    /* проба вытащить кусок из stavka*/
-    $sql = "SELECT day FROM stavka WHERE id = {$i}";
-    $result = $this->db->query($sql);
-    var_dump($result);
-    $row = $result->fetch_array(MYSQLI_BOTH);
-    var_dump($row); //0
-    //end
-    $stavka = $b * $day1;
-    $stavka2 = $b1 * $day2;
-    var_dump($stavka);
-    var_dump($stavka2);
-    $itog = $stavka + $stavka2;
-  }
-  return $begin.' '.$st1.' '.$id1.' '.$end.' '.$st2.' '.$id2.''.$itog;
-
-}
-}
-/**/
 public function test_peny($plot, $name, $srok, $opl, $date=NULL, $opl1){
   if(is_null($date) || $date == null){
     $date = date('Y-m-d');
@@ -345,6 +301,77 @@ function add_day($date, $porog){
   return $date;
   }
 
+
+
+
+    }
+
+
+if((isset($_POST['login'])) AND (isset($_POST['password']))){
+    $login = $_POST['login'];
+    $password = $_POST['password'];
+
+    $obj=new DataBase();
+    $obj->login($login, $password);
+}
+ 
+
+//Считаем долг по ставке
+/*
+public function test_end($srok, $date_2){
+  if(is_null($date_2) || $date_2 == null){
+    $date_2 = date('Y-m-d');
+  }
+  if($srok > $date_2){
+  
+    return '+'; 
+  }
+    else{
+//Обработка
+$sql = "SELECT * FROM stavka";
+$result = $this->db->query($sql);
+while ($row = $result->fetch_array(MYSQLI_BOTH)){
+
+  if(($srok >= $row['begin']) && ($srok <= $row['end'])){   //Ищем дату платежа
+    $begin = $row['end']; 
+    $st1 = $row['stavka'];
+    $id1 = $row['id'];
+    $day1 = $row['day'];
+    }
+    if(($date_2 >= $row['begin']) && ($date_2 <= $row['end'])){   //Ищем дату платежа
+      $end = $row['begin']; 
+      $st2 = $row['stavka'];
+      $id2 = $row['id'];
+      $day2 = $row['day'];
+      }
+  }
+ 
+  //Обрабатываем от и до
+
+  $b = $this->col_days($srok, $begin);
+  $b1 = $this->col_days($end, $date_2);
+ var_dump($b);
+  for($i=$st1; $i <= $st1; $i++){
+
+    $sql = "SELECT day FROM stavka WHERE id = {$i}";
+    $result = $this->db->query($sql);
+    var_dump($result);
+    $row = $result->fetch_array(MYSQLI_BOTH);
+    var_dump($row); //0
+    //end
+    $stavka = $b * $day1;
+    $stavka2 = $b1 * $day2;
+    var_dump($stavka);
+    var_dump($stavka2);
+    $itog = $stavka + $stavka2;
+  }
+  return $begin.' '.$st1.' '.$id1.' '.$end.' '.$st2.' '.$id2.''.$itog;
+
+}
+}
+*/
+
+/*
 public function start_date($srok){
   echo "Срок оплаты ".$srok."<br>";
   $sql = "SELECT * FROM stavka";
@@ -367,18 +394,5 @@ public function start_date($srok){
 }
 
 }
-
-
-
-    }
-
-
-if((isset($_POST['login'])) AND (isset($_POST['password']))){
-    $login = $_POST['login'];
-    $password = $_POST['password'];
-
-    $obj=new DataBase();
-    $obj->login($login, $password);
-}
- 
+*/
 ?>

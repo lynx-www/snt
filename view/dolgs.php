@@ -1,7 +1,7 @@
 <?php
 include('conf.php');
 $dolg = new DataBase();
-$sql = "SELECT * FROM street, sector WHERE street.id = sector.street AND sector.status = 1";
+$sql = "SELECT * FROM street, sector WHERE street.id = sector.street AND sector.status = 1 AND plot LIKE '002'";
 $dolgs = $dolg->select_sql($sql);
 $itog_dolg = 0;
 $itog_peny = 0;
@@ -40,8 +40,8 @@ foreach($dolgs as $d){
         echo '<tr><td color="red">Оплата </td><td>'.$p['pay'].'</td><td>Дата оплаты: '.$p['date'].'</td>
         <td>'.round($my_diff, 0).'</td><td>'.round($peny, 2).'</td></tr>';
       }  
-      $sqls = "SELECT sum(pay) as pays FROM payment WHERE plot = '".$d['id']."' AND name = '".$o['name']."' GROUP BY name";
-      $itog = $dolg->one_param($sqls);
+      $sqlv = "SELECT sum(pay) as pays FROM payment WHERE plot = '".$d['id']."' AND name = '".$o['name']."' GROUP BY name";
+      $itog = $dolg->one_param($sqlv);
       $ds = $dolg->sum_dolg($o['pay'], $itog);
       
       echo '<tr><td color="red">Итого оплачено </td><td>'.$itog.'</td><td></td></tr>';
