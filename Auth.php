@@ -298,7 +298,7 @@ foreach($array as $ar){
   if($ar['end'] == null) {}
   $sqls = "INSERT INTO `peny` (`plot`, `name`, `begin`, `end`, `peny`) VALUES ('".$plot."','".$name."', '".$ar['begin']."', '".$ar['end']."',  ".$peny_itog.");";
   var_dump($sqls);
-  //$this->insert($sqls);
+
    $this->db->query($sqls);
 
 
@@ -331,6 +331,7 @@ public function sum_peny($plot){
   }
   else {return 0; }
   }
+
 //Function add_date
 function add_day($date, $porog){
   echo date("Y-m-d",$porog);

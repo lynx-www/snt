@@ -16,10 +16,10 @@ foreach($dolgs as $d){
     $opl = $dolg->one('plot', 'oplats', $d['id']);
     foreach($opl as $o){
         //echo '<tbody>';
-        echo '<tr><th>'.$o['name'].'</th><th>Сумма к оплате '.$o['pay'].'</th><th>Оплатить до '.$o['date_opl'].'</th>
+        echo '<tr><th>'.$o['name'].'</th>
+        <th>Сумма к оплате '.$o['pay'].'</th>
+        <th>Оплатить до '.$o['date_opl'].'</th>
         <th>Просрочено дней</th><th>Пени</th></tr>';
-      //  $pay = "SELECT * FROM `payment` WHERE plot LIKE '".$d['id']."' AND name = '".$o['name']."'";
-      //  echo $pay;
       $pay = "SELECT oplats.plot as o_plot, oplats.name as o_name, 
       oplats.area as o_area, oplats.pay as o_pay, oplats.date_opl as o_date, cast(payment.date as Date) as Date, payment.* FROM oplats 
       LEFT JOIN payment USING(plot, name) WHERE `oplats`.`plot` LIKE '".$d['id']."' AND oplats.name = '".$o['name']."' ORDER BY `oplats`.`name` ASC ";
@@ -35,7 +35,6 @@ foreach($dolgs as $d){
 
           }
           else {$peny = 0; }
-
 
        //  $itog_peny = $itog_peny + $peny;
         echo '<tr><td color="red">Оплата </td><td>'.$p['pay'].'</td><td>Дата оплаты: '.$p['date'].'</td>
@@ -55,5 +54,5 @@ $sum_peny = $dolg->sum_peny($d['id']);
 echo '<tr><th>Общая сумма долга на '.date('d-m-Y').' </th><th>'.$itog_dolg.'</th>
 <th>Сумма пеней </th><th>'.round($sum_peny, 2).'</th></tr>';
 echo '</table>';
-
+// Считает пени только по первому платежу
 ?>
