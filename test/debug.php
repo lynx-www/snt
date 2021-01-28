@@ -6,8 +6,15 @@ $date = "2019-08-15";
 //$date = null;
 //Обход двумерного массива
 $user = new DataBase();
+//Получить участок, наименование, платежи
+$sql = "SELECT * FROM oplats WHERE plot LIKE '001' AND name = 'Замена на СИП (1 этап)'";
+$d = $user->select_sql($sql);
+foreach($d as $dd){
+    echo $dd['name'].' '.$dd['pay'].' '.$dd['date_opl'];
+    $peny = $user->test_peny($dd['date_opl']);
+    echo $peny;
+}
 
-$user->test_peny($srok);
 
 /*
 $sql = "SELECT * FROM stavka";
