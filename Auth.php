@@ -116,7 +116,6 @@
     $i = 0;
     while ($row = $result->fetch_array(MYSQLI_BOTH)){
       echo "begin = ".$row['begin']." end = ".$row['end']." ".$srok_."<br>";
-     // var_dump($srok_);
      if($srok_ < $date){
         if(($srok_ >= $row['begin']) && ($srok_ <= $row['end'])){
          
@@ -125,39 +124,10 @@
           if(($date >= $row['begin']) && ($date <= $row['end'])){ 
             echo "Нашли конец период ".$row['begin']." end = ".$row['end']." srok_ = ".$date."<br>";
           }
-          //переадть значение srok_ в другую переменную, для вычитания, при этом сохранив тип srok_
-       /*   $srok1 = DateTime::createFromFormat('Y-m-d', $srok_);
-          $begin = DateTime::createFromFormat('Y-m-d', $row['begin']);
-        $i = $srok1->diff($begin);
-        $d = $i->format('%d');
-        $newDate = new DateTime($srok_);
-        $newDate->add(new DateInterval('P'.$d.'D')); // P1D means a period of 1 day
-        $fomattedDate = $newDate->format('Y-m-d');
-        $srok_ = $fomattedDate;*/
         echo "srok_".$srok_."<br>";
         
         }
       }
-
-     
-      
-      /*
-      if (($srok_ts >= $begin) && ($user_ts <= $end)){
-              //1. Ищем в нужный диапазон для срока оплаты
-              if (($srok_ts >= $begin) && ($user_ts <= $end)){
-                echo $srok_ts.' '.$date_from_user.'<br>';
-                echo $row['stavka'].' '.$row['day']."<br>";
-                echo "В диапазоне ".date("Y-m-d",$begin).' '.date("Y-m-d",$end);
-                $interval = $end - $srok_ts;
-                $int = ($interval / (60 * 60 * 24));
-                echo '<br>interval начала '.$int.' ';
-                echo 'peny '. $int * $row['day'].'<br>'; 
-
-            }
-           
-     
-      }
-       */
 
           
     }
@@ -276,16 +246,16 @@ while ($row = $result->fetch_array(MYSQLI_BOTH)){
 
 }
 }
-
-public function test_peny($srok, $date=NULL){
+/**/
+public function test_peny($plot, $name, $srok, $opl, $date=NULL, $opl1){
   if(is_null($date) || $date == null){
     $date = date('Y-m-d');
   }
 $sql = "SELECT * FROM stavka";
 $d = $this->select_sql($sql);
-$d_begin = $srok;
+
 $array = array();
-$i = 0;
+
 
 foreach($d as $k){
    
@@ -301,7 +271,7 @@ foreach($d as $k){
     }
     
     //Конец цикла
-    if(($date >= $k['begin'])  && (($date <= $k['end']) || ($k['end'] == null))){     
+    if(($date >= $k['begin'])  && ($date <= $k['end']) || ($k['end'] == null)){     
         $k['end'] = $date; 
             array_push($array, ['id' => $k['id'], 'begin' => $k['begin'], 'end' => $k['end'], 'day' => $k['day']]);
 
@@ -312,20 +282,55 @@ foreach($d as $k){
     
    
 
-var_dump($array); 
+//var_dump($array); 
 //Далее скопированный массив обрабатываем и считаем пени.
 $itog = 0;
 foreach($array as $ar){
   $day = $this->col_days($ar['begin'], $ar['end']);
   $days = $day + 1;
-  $peny = $days * $ar['day'];
-  $itog = $itog + $peny; 
-  var_dump($itog);
+  $gg = $opl - $opl1;
+  if($day > 0 && $gg == 0){
+    $gg = $opl;
+  }
+
+  $peny = round($gg * $ar['day']/100, 2);
+  $peny_itog = $days * $peny;
+  if($ar['end'] == null) {}
+  $sqls = "INSERT INTO `peny` (`plot`, `name`, `begin`, `end`, `peny`) VALUES ('".$plot."','".$name."', '".$ar['begin']."', '".$ar['end']."',  ".$peny_itog.");";
+  var_dump($sqls);
+  //$this->insert($sqls);
+   $this->db->query($sqls);
+
 
 }
-var_dump($itog);
+
+return $peny_itog;
+
 
 }
+public function insert($sql){
+  $result = $this->db->query($sql);
+  return $result;
+}
+//Выбираем пени из таблицы peny
+public function itog_peny($plot, $name){
+$sql = "SELECT sum(peny) as sum FROM peny WHERE plot = '".$plot."' AND name = '".$name."' GROUP BY name";
+$result = $this->db->query($sql);
+if ($row = $result->fetch_array(MYSQLI_BOTH)){
+  return $row['sum'];
+}
+else {return 0; }
+}
+
+//Получаем сумму пеней
+public function sum_peny($plot){
+  $sql = "SELECT sum(peny) as sum FROM peny WHERE plot = '".$plot."'";
+  $result = $this->db->query($sql);
+  if ($row = $result->fetch_array(MYSQLI_BOTH)){
+    return $row['sum'];
+  }
+  else {return 0; }
+  }
 //Function add_date
 function add_day($date, $porog){
   echo date("Y-m-d",$porog);
