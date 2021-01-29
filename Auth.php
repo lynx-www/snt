@@ -44,26 +44,12 @@
           }
         }
   }
-/*
-  public function select($table, $sort=NULL){
-    $array = array();
-    $sql = "SELECT * FROM {$table}";
-    if(isset($sort)){
-      $sql .= " ORDER BY {$sort}";
-    }
-    echo $sql;
-    $result = $this->db->query($sql);
-    while ($row = $result->fetch_array(MYSQLI_BOTH)){
-        $array[] = $row;
-    }
-    return $array;
-  }
-  */
+
 
 
   //Используется
   public  function select_sql($sql){
-    //echo $sql;
+    //var_dump($sql);
     $array = array();
     $result = $this->db->query($sql);
     while ($row = $result->fetch_array(MYSQLI_BOTH)){
@@ -88,8 +74,7 @@
   public function one($param, $table, $where){
     $array = array();
     $sql = "SELECT * FROM {$table} WHERE {$param} LIKE '".$where."'";
-    //echo $sql;
-   // $conn = $this->db->query();
+   // var_dump($sql);
     $result = $this->db->query($sql);
     while ($row = $result->fetch_array(MYSQLI_BOTH)){
         $array[] = $row;
@@ -111,94 +96,26 @@
  }
  
 
-/*
-  public function interval($srok, $date)
-  {
-    echo "Срок оплаты: ".$srok." Дата оплаты: ".$date."<br>";
-    if($srok >= $date){echo "оплата вовремя"; exit; }
-    $sql = "SELECT * FROM stavka";
-    $result = $this->db->query($sql);
-    $srok_ = $srok;
-    $i = 0;
-    while ($row = $result->fetch_array(MYSQLI_BOTH)){
-      echo "begin = ".$row['begin']." end = ".$row['end']." ".$srok_."<br>";
-     if($srok_ < $date){
-        if(($srok_ >= $row['begin']) && ($srok_ <= $row['end'])){
-         
-          echo "Нашли нужный период ".$row['begin']." end = ".$row['end']." srok_ = ".$srok_."<br>";
-          if($srok_ >= $date){ echo "Закончили "; exit; }
-          if(($date >= $row['begin']) && ($date <= $row['end'])){ 
-            echo "Нашли конец период ".$row['begin']." end = ".$row['end']." srok_ = ".$date."<br>";
-          }
-        echo "srok_".$srok_."<br>";
-        
-        }
-      }
-
-          
-    }
-}
-*/
-/*
-public function return_begin($date=NULL){
-  if(!isset($date)){$date = date("Y-m-d");}
-  $sql = "SELECT * FROM stavka";
-  $result = $this->db->query($sql);
- 
-  while ($row = $result->fetch_array(MYSQLI_BOTH)){
-      if(($date >= $row['begin']) && ($date <= $row['end'])){
-        $id = $row['id'];
-        return $id;
-        exit;
-      }
-   }
-}
-*/
-/*
-public function count_day($id_srok, $srok, $id_date){
-  $sql = "SELECT * FROM stavka";
-  $result = $this->db->query($sql);
- 
-  while ($row = $result->fetch_array(MYSQLI_BOTH)){
-    //От срока вычесть end, получить по периоду кол-во дней и пени. 
-    $srok1 = DateTime::createFromFormat('Y-m-d', $srok);
-    $end = DateTime::createFromFormat('Y-m-d', $row['end']);
-    $i = $srok1->diff($end);
-    echo "d = ".$d = $i->format('%d');
-    if((($row['id']) <= $id_date) && (($row['id']) >= $srok)){
-      echo "Нашли нужный период ".$row['begin']." end = ".$row['end']."<br>";
-    }
-    
-  }
-}
-*/
-/* НЕ ПРАВИЛЬНО РАБОТАЕТ
-public function my_diff($date1, $date2){
-  if(!isset($date2)){ $date2 = date('Y-m-d');}
-  $d1 = DateTime::createFromFormat('Y-m-d', $date1);
-  $d2 = DateTime::createFromFormat('Y-m-d', $date2);
-$i = $d1->diff($d2);
-$d = $i->format('%d');
-return $d;
-}
-*/
 //Разница между датами используется
-function col_days($srok, $date_2=null) {
-
-if(is_null($date_2) || $date_2 == null){
-  $date_2 = date('Y-m-d');
+function col_days($srok, $date = null) {
+var_dump($date);
+if(is_null($date) || $date == null){ //не сработало
+  $date = date('Y-m-d');
+  
 }
-if($srok > $date_2){
+var_dump($date);
+if($srok > $date){
 
   return ''; exit;
 }
   else{
     $time_1 = strtotime($srok);
-    $time_2 = strtotime($date_2); 
+    $time_2 = strtotime($date); 
     $diff = abs($time_1 - $time_2);
     $col_days = $diff / 60 / 60 / 24;
     return $col_days;  
   }
+  return 0;
 }
 
 
@@ -242,7 +159,9 @@ foreach($d as $k){
 //Далее скопированный массив обрабатываем и считаем пени.
 $itog = 0;
 foreach($array as $ar){
+  var_dump($ar['end']);
   $day = $this->col_days($ar['begin'], $ar['end']);
+  var_dump($day);
   $days = $day + 1;
   $gg = $opl - $opl1;
   if($day > 0 && $gg == 0){
@@ -252,25 +171,31 @@ foreach($array as $ar){
   $peny = round($gg * $ar['day']/100, 2);
   $peny_itog = $days * $peny;
   if($ar['end'] == null) {}
-  $sqls = "INSERT INTO `peny` (`plot`, `name`, `begin`, `end`, `peny`) VALUES ('".$plot."','".$name."', '".$ar['begin']."', '".$ar['end']."',  ".$peny_itog.");";
-  var_dump($sqls);
+  $sqls = "INSERT INTO `peny` (`plot`, `name`, `begin`, `end`, `peny`, `status`) 
+  VALUES ('".$plot."','".$name."', '".$ar['begin']."', '".$ar['end']."',  ".$peny_itog.", 1)
+  ON DUPLICATE KEY UPDATE plot = '".$plot."', name = '".$name."', begin = '".$ar['begin']."', 
+  end = '".$ar['end']."', peny ='".$peny_itog."', status = 1;";
+  //var_dump($sqls);
 
    $this->db->query($sqls);
 
-
 }
-
+if($peny_itog == null){$peny_itog = 0;}
 return $peny_itog;
 
 
 }
+
+
 public function insert($sql){
+ // var_dump($sql);
   $result = $this->db->query($sql);
   return $result;
 }
 //Выбираем пени из таблицы peny
 public function itog_peny($plot, $name){
 $sql = "SELECT sum(peny) as sum FROM peny WHERE plot = '".$plot."' AND name = '".$name."' GROUP BY name";
+//var_dump($sql);
 $result = $this->db->query($sql);
 if ($row = $result->fetch_array(MYSQLI_BOTH)){
   return $row['sum'];
@@ -315,6 +240,21 @@ if((isset($_POST['login'])) AND (isset($_POST['password']))){
     $obj->login($login, $password);
 }
  
+/*
+  public function select($table, $sort=NULL){
+    $array = array();
+    $sql = "SELECT * FROM {$table}";
+    if(isset($sort)){
+      $sql .= " ORDER BY {$sort}";
+    }
+    echo $sql;
+    $result = $this->db->query($sql);
+    while ($row = $result->fetch_array(MYSQLI_BOTH)){
+        $array[] = $row;
+    }
+    return $array;
+  }
+  */
 
 //Считаем долг по ставке
 /*
@@ -393,6 +333,79 @@ public function start_date($srok){
     }
 }
 
+}
+*/
+
+
+/*
+  public function interval($srok, $date)
+  {
+    echo "Срок оплаты: ".$srok." Дата оплаты: ".$date."<br>";
+    if($srok >= $date){echo "оплата вовремя"; exit; }
+    $sql = "SELECT * FROM stavka";
+    $result = $this->db->query($sql);
+    $srok_ = $srok;
+    $i = 0;
+    while ($row = $result->fetch_array(MYSQLI_BOTH)){
+      echo "begin = ".$row['begin']." end = ".$row['end']." ".$srok_."<br>";
+     if($srok_ < $date){
+        if(($srok_ >= $row['begin']) && ($srok_ <= $row['end'])){
+         
+          echo "Нашли нужный период ".$row['begin']." end = ".$row['end']." srok_ = ".$srok_."<br>";
+          if($srok_ >= $date){ echo "Закончили "; exit; }
+          if(($date >= $row['begin']) && ($date <= $row['end'])){ 
+            echo "Нашли конец период ".$row['begin']." end = ".$row['end']." srok_ = ".$date."<br>";
+          }
+        echo "srok_".$srok_."<br>";
+        
+        }
+      }
+
+          
+    }
+}
+*/
+/*
+public function return_begin($date=NULL){
+  if(!isset($date)){$date = date("Y-m-d");}
+  $sql = "SELECT * FROM stavka";
+  $result = $this->db->query($sql);
+ 
+  while ($row = $result->fetch_array(MYSQLI_BOTH)){
+      if(($date >= $row['begin']) && ($date <= $row['end'])){
+        $id = $row['id'];
+        return $id;
+        exit;
+      }
+   }
+}
+*/
+/*
+public function count_day($id_srok, $srok, $id_date){
+  $sql = "SELECT * FROM stavka";
+  $result = $this->db->query($sql);
+ 
+  while ($row = $result->fetch_array(MYSQLI_BOTH)){
+    //От срока вычесть end, получить по периоду кол-во дней и пени. 
+    $srok1 = DateTime::createFromFormat('Y-m-d', $srok);
+    $end = DateTime::createFromFormat('Y-m-d', $row['end']);
+    $i = $srok1->diff($end);
+    echo "d = ".$d = $i->format('%d');
+    if((($row['id']) <= $id_date) && (($row['id']) >= $srok)){
+      echo "Нашли нужный период ".$row['begin']." = ".$row['end']."<br>";
+    }
+    
+  }
+}
+*/
+/* НЕ ПРАВИЛЬНО РАБОТАЕТ
+public function my_diff($date1, $date2){
+  if(!isset($date2)){ $date2 = date('Y-m-d');}
+  $d1 = DateTime::createFromFormat('Y-m-d', $date1);
+  $d2 = DateTime::createFromFormat('Y-m-d', $date2);
+$i = $d1->diff($d2);
+$d = $i->format('%d');
+return $d;
 }
 */
 ?>

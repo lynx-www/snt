@@ -3,20 +3,22 @@
 include('../conf.php');
 $srok = "2019-06-30";
 $date = "2019-08-15";
+$plot = '001';
 //$date = null;
 //Обход двумерного массива
 $user = new DataBase();
 //Получить участок, наименование, платежи
-$sql = "SELECT * FROM oplats WHERE plot LIKE '001' AND name = 'Замена на СИП (1 этап)'";
+/*
+$sql = "SELECT * FROM oplats WHERE plot LIKE '002' AND name = 'Замена на СИП (1 этап)'";
 $d = $user->select_sql($sql);
 foreach($d as $dd){
     echo $dd['name'].' '.$dd['pay'].' '.$dd['date_opl'];
-    $peny = $user->test_peny($dd['date_opl']);
+    $peny = $user->$dolg->itog_peny($d['id'], $o['name']);
     echo $peny;
 }
+*/
 
 
-/*
 $sql = "SELECT * FROM stavka";
 $d = $user->select_sql($sql);
 $d_begin = $srok;

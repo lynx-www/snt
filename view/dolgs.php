@@ -1,7 +1,7 @@
 <?php
 include('conf.php');
 $dolg = new DataBase();
-$sql = "SELECT * FROM street, sector WHERE street.id = sector.street AND sector.status = 1 AND plot LIKE '002'";
+$sql = "SELECT * FROM street, sector WHERE street.id = sector.street AND sector.status = 1 AND sector.id LIKE '001'";
 $dolgs = $dolg->select_sql($sql);
 $itog_dolg = 0;
 $itog_peny = 0;
@@ -14,6 +14,9 @@ foreach($dolgs as $d){
     //echo '<tr><th>Наименование</th><th>Сумма к оплате</th></tr>';
    echo '</thead>';
     $opl = $dolg->one('plot', 'oplats', $d['id']);
+   // $sqlt = "SELECT * FROM oplats WHERE plot LIKE '001'";
+    //var_dump($sqlt);
+    //$opl = $dolg->select_sql($sqlt);
     foreach($opl as $o){
         //echo '<tbody>';
         echo '<tr><th>'.$o['name'].'</th>
@@ -24,13 +27,13 @@ foreach($dolgs as $d){
       oplats.area as o_area, oplats.pay as o_pay, oplats.date_opl as o_date, cast(payment.date as Date) as Date, payment.* FROM oplats 
       LEFT JOIN payment USING(plot, name) WHERE `oplats`.`plot` LIKE '".$d['id']."' AND oplats.name = '".$o['name']."' ORDER BY `oplats`.`name` ASC ";
         $pays = $dolg->select_sql($pay);
-       
+      // var_dump($pays);
       foreach($pays as $p){
          
           $my_diff = $dolg->col_days($o['date_opl'], $p['date']);
 
           if($my_diff > 0){
-
+//var_dump($my_diff);
           $peny = $dolg->itog_peny($d['id'], $o['name']);
 
           }
@@ -47,9 +50,12 @@ foreach($dolgs as $d){
       echo '<tr><td color="red">Итого оплачено </td><td>'.$itog.'</td><td></td></tr>';
       echo '<tr><td color="red">Долг </td><td>'.$ds.'</td><td></td></tr>';
       $itog_dolg = $ds + $itog_dolg;
+      $dolg->test_peny($d['id'], $o['name'], $o['date_opl'], $o['pay'], $p['date'], $p['pay']);
     }
     
 }
+//test_peny($plot, $name, $srok, $opl, $date=NULL, $opl1)
+
 $sum_peny = $dolg->sum_peny($d['id']);
 echo '<tr><th>Общая сумма долга на '.date('d-m-Y').' </th><th>'.$itog_dolg.'</th>
 <th>Сумма пеней </th><th>'.round($sum_peny, 2).'</th></tr>';
