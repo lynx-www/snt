@@ -1,7 +1,7 @@
 <?php
 include('conf.php');
 $dolg = new DataBase();
-$sql = "SELECT * FROM street, sector WHERE street.id = sector.street AND sector.status = 1 AND sector.id LIKE '001'";
+$sql = "SELECT * FROM street, sector WHERE street.id = sector.street AND sector.status = 1 AND sector.id LIKE '007'";
 $dolgs = $dolg->select_sql($sql);
 $itog_dolg = 0;
 $itog_peny = 0;
@@ -30,7 +30,7 @@ foreach($dolgs as $d){
       // var_dump($pays);
       foreach($pays as $p){
          
-          $my_diff = $dolg->col_days($o['date_opl'], $p['date']);
+          $my_diff = $dolg->col_days($o['date_opl'], $p['date']); //По дате платежа считаем кол-во дней просрочки
 
           if($my_diff > 0){
 //var_dump($my_diff);
@@ -42,15 +42,23 @@ foreach($dolgs as $d){
        //  $itog_peny = $itog_peny + $peny;
         echo '<tr><td color="red">Оплата </td><td>'.$p['pay'].'</td><td>Дата оплаты: '.$p['date'].'</td>
         <td>'.round($my_diff, 0).'</td><td>'.round($peny, 2).'</td></tr>';
+        //$dolg->test_peny($d['id'], $o['name'], $o['date_opl'], $p['date']);
+       
+      
+          $dolg->test_peny($d['id'], $o['name'], $o['date_opl'], $o['pay'], $p['date'], $p['pay']);
+        
+        
       }  
       $sqlv = "SELECT sum(pay) as pays FROM payment WHERE plot = '".$d['id']."' AND name = '".$o['name']."' GROUP BY name";
       $itog = $dolg->one_param($sqlv);
       $ds = $dolg->sum_dolg($o['pay'], $itog);
-      
+      $ps = $dolg->peny_itog($d['id'], $o['name']);
       echo '<tr><td color="red">Итого оплачено </td><td>'.$itog.'</td><td></td></tr>';
-      echo '<tr><td color="red">Долг </td><td>'.$ds.'</td><td></td></tr>';
+      echo '<tr><td color="red">Долг </td><td>'.$ds.'</td><td>Пени: '.$ps.'</td></tr>';
       $itog_dolg = $ds + $itog_dolg;
-      $dolg->test_peny($d['id'], $o['name'], $o['date_opl'], $o['pay'], $p['date'], $p['pay']);
+     // 
+     
+     
     }
     
 }
