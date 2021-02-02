@@ -7,6 +7,10 @@ $plot = '001';
 //$date = null;
 //Обход двумерного массива
 $user = new DataBase();
+$sql = "SELECT * FROM peny WHERE plot LIKE ?";
+$param = '731';
+$ar = $user->test_select($sql, $param);
+var_dump($ar);
 //Получить участок, наименование, платежи
 /*
 $sql = "SELECT * FROM oplats WHERE plot LIKE '002' AND name = 'Замена на СИП (1 этап)'";
@@ -18,7 +22,7 @@ foreach($d as $dd){
 }
 */
 
-
+/*
 $sql = "SELECT * FROM stavka";
 $d = $user->select_sql($sql);
 $d_begin = $srok;
@@ -66,10 +70,6 @@ var_dump($itog);
 //Необходимо сумму долга умножить на $peny и разделить на 100 
 //Далее round (, 2);
 //	   $rs = round($rw['cena'] * 0.02167/100, 2); 
-
-
-
-
 
 */
 

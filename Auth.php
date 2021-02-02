@@ -48,6 +48,7 @@
 
 
   //Используется
+  //$sql = "SELECT * FROM street, sector WHERE street.id = sector.street AND sector.status = 1 AND sector.id LIKE '394'";
   public  function select_sql($sql){
     //var_dump($sql);
     $array = array();
@@ -58,17 +59,14 @@
   return $array;
  }
 
- /*
-  public function select_filtr($table, $where=NULL){
-    $array = array();
-    $sql = "SELECT * FROM {$table} WHERE famely LIKE '".$where."%'";
-    $result = $this->db->query($sql);
-    while ($row = $result->fetch_array(MYSQLI_BOTH)){
-        $array[] = $row;
-    }
-    return $array;
+ //Дата принимается как параметр, если есть, вернуть, если нет, присвоить текущую дату
+public function my_date($date = NULL){
+  $today = date('Y-m-d');
+  if(is_null($date) || $date == null){
+    $date = $today;
   }
-  */
+  return $date;
+}
 
 
   public function one($param, $table, $where){
@@ -103,7 +101,7 @@ if(is_null($date) || $date == null){ //не сработало
   $date = date('Y-m-d');
   
 }
-var_dump($date);
+
 if($srok > $date){
 
   return ''; exit;
@@ -123,102 +121,98 @@ public function peny_itog($plot, $name){
   $result = $this->db->query($sql);
   $row = $result->fetch_array(MYSQLI_BOTH);
   return $row['peny'];
- var_dump($row['peny']);
+ //var_dump($row['peny']);
 }
-/*
-public function test_peny($plot, $name, $srok, $date){
+
+//test_peny($d['id'], $o['name'], $o['date_opl'], $o['pay'], $p['date'], $p['pay']);
+public function test_peny($plot, $name, $srok, $opl, $date=NULL, $opl1 = NULL){
   $array = array();
-  var_dump($date);
-  $sql = "SELECT * FROM stavka";
-  $d = $this->select_sql($sql);
-
-  $today = date('Y-m-d');
-  if(is_null($date) || $date == null){ //1.Если даты платеж нет считать до текущей
-    $date = $today;
-  }
-  else{                     //2. Если есть, пройтись по каждой дате и по ним высчитать периоды по ставке
-    //$date = $today;
-  }
-  $date = strtotime($date);
-  $date = date("Y-m-d", $date);
-  foreach($d as $k){
-    if($k['end'] == null) {$k['end'] = $today; } //Если k['end'] равно null присвоить текущую
-   // if(($srok >= $k['begin'])  && ($srok <= $k['end'])){     
-      $k['begin'] = $srok; 
-      array_push($array, ['id' => $k['id'], 'name' => $name, 'begin' => $k['begin'], 'end' => $k['end'], 'day' => $k['day'], 'opl' => $date]);
-      
-     // }
-  }
-  var_dump($array);
-  
-}
-*/
-
-public function test_peny($plot, $name, $srok, $opl, $date=NULL, $opl1){
   $today = date('Y-m-d');
   if(is_null($date) || $date == null){
     $date = $today;
   }
-  if($srok < $date){  //проверяем дату к оплате  и дату платежа, если дата платежа меньше срока, ничего не считать
-$sql = "SELECT * FROM stavka";
-$d = $this->select_sql($sql);
-
-$array = array();
-
-
-foreach($d as $k){
   $date = strtotime($date);
-  $date = date("Y-m-d", $date);
-   if($k['end'] == null) {$k['end'] = $today; }
-    if(($srok >= $k['begin'])  && ($srok <= $k['end'])){     
-        $k['begin'] = $srok; 
-        array_push($array, ['id' => $k['id'], 'begin' => $k['begin'], 'end' => $k['end'], 'day' => $k['day'], 'opl' => $date]);
-        
-    }
-    //Как же взять середину?
+  $srok = strtotime($srok);
+  if($srok < $date){ //Если просрочка
+  $date = date('Y-m-d', $date);
+  $srok = date('Y-m-d', $srok);
+  $sql = "SELECT * FROM stavka";
+  $d = $this->select_sql($sql);
+  foreach($d as $k){
+    //Сразу $k['end']если null заменяем на текущую дату
+    $k['end'] == null ? $today : $k['end'];
+    if(is_null($k['end']) || $k['end'] == null){
+    $k['end'] = $today;
+  }
 
-    if(($k['begin'] > $srok) && ($k['end'] <= $date) && ($k['begin'] < $date)){
-        array_push($array, ['id' => $k['id'], 'begin' => $k['begin'], 'end' => $k['end'], 'day' => $k['day'], 'opl' => $date]);
-    }
-    
-    //Конец цикла
-    if(($date >= $k['begin'])  && ($date <= $k['end']) || ($k['end'] == null)){     
+    if(($date <= $k['begin'])  && ($date <= $k['end'])){ $k['end'] = $date;  $end = $k['id']; }
+    if(($srok >= $k['begin'])  && ($srok <= $k['end'])){ $k['begin'] = $srok; }
+      //Конец цикла
+      if(($date >= $k['begin'])  && ($date <= $k['end'])){     
         $k['end'] = $date; 
-            array_push($array, ['id' => $k['id'], 'begin' => $k['begin'], 'end' => $k['end'], 'day' => $k['day'], 'opl' => $date]);
-
+            array_push($array, ['id' => $k['id'], 'name' =>$name, 'begin' => $k['begin'], 'end' => $k['end'], 'day' => $k['day'],'pay' => $opl1, 'opl' => $date]);
+          continue;
         } 
-      // if($date < $k['begin'] ){ break;}
-        
-    }
-    
-  }
-
-var_dump($array); 
-//Далее скопированный массив обрабатываем и считаем пени.
-$itog = 0;
-foreach($array as $ar){
-  var_dump($ar['end']);
-  $day = $this->col_days($ar['begin'], $ar['end']);
-  var_dump($day);
-  $days = $day + 1;
-  $gg = $opl - $opl1;
-  if($day > 0 && $gg == 0){
-    $gg = $opl;
-  }
-
-  $peny = round($gg * $ar['day']/100, 2);
-  $peny_itog = $days * $peny;
-  if($ar['end'] == null) {}
-  $sqls = "INSERT INTO `peny` (`plot`, `name`, `begin`, `end`, `peny`, `opl`, `status`) 
-  VALUES ('".$plot."','".$name."', '".$ar['begin']."', '".$ar['end']."',  ".$peny_itog.", '".$date."', 1)";
-  var_dump($sqls);
-
-   $this->db->query($sqls);
-
+ //Проверить середину
+ if(($k['begin'] > $srok) && ($k['end'] <= $date) && ($k['begin'] < $date)){
+  array_push($array, ['id' => $k['id'], 'name' =>$name, 'begin' => $k['begin'], 'end' => $k['end'], 'day' => $k['day'],'pay' => $opl1, 'opl' => $date]);
 }
-if($peny_itog == null){$peny_itog = 0;} //Здесь ошибка Undefined variable: peny_itog in
-return $peny_itog;
+  }
 
+
+  //$i = $plot.' '.$end.' '.$name.' '.$srok.' '.$date.' проср';
+  //var_dump($i);
+  //var_dump($array);
+  }
+  else{ // Иначе вовремя и выходим
+   /* $date = date('Y-m-d', $date);
+    $srok = date('Y-m-d', $srok);
+    $i = $plot.' '.$name.' '.$srok.' '.$date.' нет проср';
+    var_dump($i); */
+    return true;
+   }
+//До этого момента все правильно
+foreach($array as $ar){
+  $sqls = "INSERT INTO `peny` (`plot`, `name`, `begin`, `end`, `peny`, `opl`, `status`) 
+  VALUES ('".$plot."','".$name."', '".$ar['begin']."', '".$ar['end']."',  ".$ar['day'].", '".$date."', 1)
+  ON DUPLICATE KEY UPDATE `plot` = '".$plot."', `name` = '".$name."', `begin`='".$ar['begin']."',
+   `end`='".$ar['end']."', `peny` = '".$ar['day']."', `opl` = '".$date."'";
+  //var_dump($sqls);
+  $this->db->query($sqls);
+}
+//var_dump($array);
+}
+
+
+
+//$penies =  $dolg->itogs_peny($d['id'], $o['name'], $p['date'], round($my_diff, 0), $o['pay']);
+public function itogs_peny($plot, $name, $date, $k_opl,  $prosrocka, $pay){
+  //Что делать с суммой долга? 
+  //$rs = round($rw['cena'] * 0.02167/100, 2);  
+  $today = date('Y-m-d');
+   //Если нет даты оплаты, то за нее взять текущую
+  if(is_null($date) || $date == null){
+    $date = $today; 
+  }
+$sum = $k_opl - $pay;
+if($sum == 0){
+  $sum = $k_opl;
+}
+//var_dump($sum);
+$date = date("Y-m-d", strtotime($date));
+  $var = "SELECT * FROM peny WHERE plot LIKE '".$plot."' AND name = '".$name."' AND opl = '".$date."'";
+ 
+  $result = $this->db->query($var);
+  
+  while ($row = $result->fetch_array(MYSQLI_BOTH)){
+    $k = $sum * $row['peny'] / 100;
+    $peny = $prosrocka * $k;
+  
+    return $peny != 0 ? $peny : 0;
+    //return $sum;
+  }
+
+//return $sum;
 
 }
 
@@ -238,6 +232,7 @@ if ($row = $result->fetch_array(MYSQLI_BOTH)){
 }
 else {return 0; }
 }
+
 
 //Получаем сумму пеней
 public function sum_peny($plot){
@@ -263,7 +258,18 @@ function add_day($date, $porog){
   }
 
 
+public function test_select($sql=null, $param=null){
+  $array = array();
+$query = $this->db->prepare($sql); // assuming $mysqli is the connection
+$query->bind_param('s', $param);
+if(!$query->execute()) return false;
+    $res = $query->get_result();
+    while($row = $res->fetch_assoc()){
+      echo $row['plot'] .'<br>';
+   }
 
+$query->close();
+}
 
     }
 
@@ -276,6 +282,7 @@ if((isset($_POST['login'])) AND (isset($_POST['password']))){
     $obj->login($login, $password);
 }
  
+
 /*
   public function select($table, $sort=NULL){
     $array = array();
