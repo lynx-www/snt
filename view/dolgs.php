@@ -1,6 +1,7 @@
 <?php
 include('conf.php');
 $dolg = new DataBase();
+$plot = '394';
 $sql = "SELECT * FROM street, sector WHERE street.id = sector.street AND sector.status = 1 AND sector.id LIKE '394'";
 $dolgs = $dolg->select_sql($sql);
 $itog_dolg = 0;
